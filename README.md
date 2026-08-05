@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Builder.io enrichOptions parity repro
 
-## Getting Started
+Minimal Next.js (Pages Router) + `@builder.io/react` (Gen1 SDK) app demonstrating that Builder's
+visual editor does not respect `enrichOptions` the way production rendering does. See
+[`REPRO.md`](./REPRO.md) for the full writeup, evidence, and the ask for engineering.
 
-First, run the development server:
+## Setup
+
+```bash
+npm install
+```
+
+Create `.env` with:
+
+```
+NEXT_PUBLIC_BUILDER_KEY=<your Builder.io public API key>
+```
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then visit `/enrich-repro`, `/product-a`, `/product-b`, `/product-c`, or `/product-d`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `pages/[...page].tsx` — catch-all route; fetches from the `page` model first, falls back to
+  `product`, with `enrichOptions` (`enrichLevel: 1`, `model.product.{fields,omit}`) applied.
+- `components/ProductsCarousel.tsx` — real component registered via `Builder.registerComponent`,
+  with a `products` list input (each item a `reference` to the `product` model).
+- `lib/builder.ts` — `builder.init(...)`, imported as a side effect from `pages/_app.tsx` so it
+  actually lands in the client bundle (Next.js tree-shakes anything only referenced from
+  `getStaticProps`/`getStaticPaths`).
